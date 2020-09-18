@@ -2,6 +2,9 @@
 #ifndef PYKADMINXDR_H
 #define PYKADMINXDR_H
 
+#ifdef __APPLE__
+  #include <time.h>
+#endif
 #include <krb5.h>
 #include <kdb.h>
 #include <gssrpc/rpc.h>
