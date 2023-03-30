@@ -22,7 +22,7 @@ static char module_docstring[] = "";
 
 char *service_name          = KADM5_ADMIN_SERVICE;
 krb5_ui_4 struct_version    = KADM5_STRUCT_VERSION;
-krb5_ui_4 api_version       = KADM5_API_VERSION_2;
+krb5_ui_4 api_version       = KADM5_API_VERSION_4;
 
 static struct PyMethodDef module_methods[] = {
 
@@ -32,7 +32,7 @@ static struct PyMethodDef module_methods[] = {
 
     {"init_with_ccache",   (PyCFunction)_kadmin_init_with_ccache,   METH_VARARGS, "init_with_ccache(principal, ccache)"},
     {"init_with_keytab",   (PyCFunction)_kadmin_init_with_keytab,   METH_VARARGS, "init_with_keytab(principal, keytab)"},
-    {"init_with_password", (PyCFunction)_kadmin_init_with_password, METH_VARARGS, "init_with_password(principal, password)"},
+    {"init_with_password", (PyCFunction)_kadmin_init_with_password, METH_VARARGS, "init_with_password(principal, password, realm)"},
 
     /* todo: these should permit the user to set/get the 
         service, struct, api version, default realm, ... 
@@ -421,16 +421,21 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
     
     char *client_name = NULL;
     char *password    = NULL;
+    char *realm       = NULL;
     char **db_args    = NULL;
-     
-    kadm5_config_params *params = NULL;
+    kadm5_config_params params;
 
-    if (!PyArg_ParseTuple(args, "zz|O", &client_name, &password, &py_db_args))
+    if (!PyArg_ParseTuple(args, "zz|OO", &client_name, &password, &realm, &py_db_args))
         return NULL;
 
-    kadmin = PyKAdminObject_create();
-    params = calloc(0x1, sizeof(kadm5_config_params));
+    // params = calloc(0x1, sizeof(kadm5_config_params));
 
+    (void) memset((char *)&params, 0, sizeof (params));
+    /* set realm here */
+    params.realm = realm;
+    params.mask |= KADM5_CONFIG_REALM;
+
+    kadmin = PyKAdminObject_create();
     db_args = pykadmin_parse_db_args(py_db_args);
 
     retval = kadm5_init_with_password(
@@ -438,7 +443,7 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
                 client_name, 
                 password, 
                 service_name, 
-                params, 
+                &params, 
                 struct_version, 
                 api_version, 
                 db_args, 
@@ -452,8 +457,8 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
         PyKAdminError_raise_error(retval, "kadm5_init_with_password");
     }
 
-    if (params)
-        free(params);
+    // if (params)
+    //     free(params);
 
     pykadmin_free_db_args(db_args);
 
