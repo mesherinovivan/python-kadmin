@@ -32,7 +32,7 @@ static struct PyMethodDef module_methods[] = {
 
     {"init_with_ccache",   (PyCFunction)_kadmin_init_with_ccache,   METH_VARARGS, "init_with_ccache(principal, ccache)"},
     {"init_with_keytab",   (PyCFunction)_kadmin_init_with_keytab,   METH_VARARGS, "init_with_keytab(principal, keytab)"},
-    {"init_with_password", (PyCFunction)_kadmin_init_with_password, (METH_VARARGS | METH_KEYWORDS), "init_with_password(principal, password, realm=None)"},
+    {"init_with_password", (PyCFunction)_kadmin_init_with_password, METH_VARARGS | METH_KEYWORDS, "init_with_password(principal, password, realm=None)"},
 
     /* todo: these should permit the user to set/get the 
         service, struct, api version, default realm, ... 
@@ -420,7 +420,7 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
     kadm5_ret_t retval     = KADM5_OK;
 
     static char *realm     = NULL;
-    static const char *kwlist[] = { "realm", NULL };
+    static char *kwlist[] = {"client_name", "password", "py_db_args", "realm", NULL};
 
     char *client_name = NULL;
     char *password    = NULL;
@@ -430,7 +430,7 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
     // if (!PyArg_ParseTupleAndKeywords(args, kwds, "|z", kwlist, &match))
     //     return NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "zz|O$0", &client_name, &password, &py_db_args, kwlist, &realm))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|zzO$O", kwlist, &client_name, &password, &py_db_args, &realm))
         return NULL;
 
     // params = calloc(0x1, sizeof(kadm5_config_params));

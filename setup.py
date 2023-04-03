@@ -42,7 +42,7 @@ setup(name='python-kadmin',
                   "src/PyKAdminXDR.c",
                   "src/getdate.c"
                   ],
-              extra_compile_args=["-v", "--std=gnu89"]
+              extra_compile_args=["-v", "--std=gnu89", "-fcommon"]
           ),
           Extension(
               "kadmin_local",
@@ -61,7 +61,7 @@ setup(name='python-kadmin',
                   "src/getdate.c"
                   ],
               define_macros=[('KADMIN_LOCAL', '')],
-              extra_compile_args=["-v", "--std=gnu89"],
+              extra_compile_args=["-v", "--std=gnu89", "-fcommon"],
           )
       ],
       classifiers=[
