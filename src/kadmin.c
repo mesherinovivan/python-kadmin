@@ -13,7 +13,7 @@ static PyKAdminObject *_kadmin_local(PyObject *self, PyObject *args);
 
 static PyKAdminObject *_kadmin_init_with_ccache(PyObject *self, PyObject *args); 
 static PyKAdminObject *_kadmin_init_with_keytab(PyObject *self, PyObject *args); 
-static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args); 
+static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args, PyObject *kwds); 
 
 static PyObject *_kadmin_get_option(PyObject *self, PyObject *args, PyObject *kwds);
 static PyObject *_kadmin_set_option(PyObject *self, PyObject *args, PyObject *kwds);
@@ -32,7 +32,7 @@ static struct PyMethodDef module_methods[] = {
 
     {"init_with_ccache",   (PyCFunction)_kadmin_init_with_ccache,   METH_VARARGS, "init_with_ccache(principal, ccache)"},
     {"init_with_keytab",   (PyCFunction)_kadmin_init_with_keytab,   METH_VARARGS, "init_with_keytab(principal, keytab)"},
-    {"init_with_password", (PyCFunction)_kadmin_init_with_password, METH_VARARGS, "init_with_password(principal, password, realm)"},
+    {"init_with_password", (PyCFunction)_kadmin_init_with_password, (METH_VARARGS | METH_KEYWORDS), "init_with_password(principal, password, realm=None)"},
 
     /* todo: these should permit the user to set/get the 
         service, struct, api version, default realm, ... 
@@ -413,27 +413,33 @@ cleanup:
 }
 
 
-static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args) {
+static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args, PyObject *kwds) {
 
     PyKAdminObject *kadmin = NULL;
     PyObject *py_db_args   = NULL;
     kadm5_ret_t retval     = KADM5_OK;
-    
+
+    static char *realm     = NULL;
+    static const char *kwlist[] = { "realm", NULL };
+
     char *client_name = NULL;
     char *password    = NULL;
-    char *realm       = NULL;
     char **db_args    = NULL;
     kadm5_config_params params;
 
-    if (!PyArg_ParseTuple(args, "zz|OO", &client_name, &password, &realm, &py_db_args))
+    // if (!PyArg_ParseTupleAndKeywords(args, kwds, "|z", kwlist, &match))
+    //     return NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "zz|O$0", &client_name, &password, &py_db_args, kwlist, &realm))
         return NULL;
 
     // params = calloc(0x1, sizeof(kadm5_config_params));
 
     (void) memset((char *)&params, 0, sizeof (params));
     /* set realm here */
-    params.realm = realm;
-    params.mask |= KADM5_CONFIG_REALM;
+    if (realm)
+        params.realm = realm;
+        params.mask |= KADM5_CONFIG_REALM;
 
     kadmin = PyKAdminObject_create();
     db_args = pykadmin_parse_db_args(py_db_args);

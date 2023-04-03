@@ -28,9 +28,9 @@ setup(name='python-kadmin',
       ext_modules=[
           Extension(
               "kadmin",
-              library_dirs=["/usr/local/opt/krb5/lib"],
+              library_dirs=["/opt/homebrew/opt/krb5/include"],
               libraries=["krb5", "kadm5clnt", "kdb5"],
-              # include_dirs=["/usr/include/", "/usr/include/et/"],
+              include_dirs=["/opt/homebrew/opt/krb5/include"],
               sources=[
                   "src/kadmin.c",
                   "src/PyKAdminErrors.c",
@@ -46,8 +46,9 @@ setup(name='python-kadmin',
           ),
           Extension(
               "kadmin_local",
-              library_dirs=["/usr/local/opt/krb5/lib"],
+              library_dirs=["/opt/homebrew/opt/krb5/include",],
               libraries=["krb5", "kadm5srv", "kdb5"],
+              include_dirs=["/opt/homebrew/opt/krb5/include"],
               sources=[
                   "src/kadmin.c",
                   "src/PyKAdminErrors.c",
