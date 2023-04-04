@@ -419,27 +419,25 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
     PyObject *py_db_args   = NULL;
     kadm5_ret_t retval     = KADM5_OK;
 
-    static char *realm     = NULL;
-    static char *kwlist[] = {"client_name", "password", "py_db_args", "realm", NULL};
+    char *realm     = NULL;
+    static char *kwlist[] = {"", "", "realm", "py_db_args", NULL};
 
     char *client_name = NULL;
+    char *admin_server = NULL;
     char *password    = NULL;
     char **db_args    = NULL;
     kadm5_config_params params;
 
-    // if (!PyArg_ParseTupleAndKeywords(args, kwds, "|z", kwlist, &match))
-    //     return NULL;
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|zzO$O", kwlist, &client_name, &password, &py_db_args, &realm))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "zz|sO", kwlist, &client_name, &password, &realm, &py_db_args))
         return NULL;
 
     // params = calloc(0x1, sizeof(kadm5_config_params));
 
     (void) memset((char *)&params, 0, sizeof (params));
+
     /* set realm here */
-    if (realm)
-        params.realm = realm;
-        params.mask |= KADM5_CONFIG_REALM;
+    params.realm = realm;
+    params.mask |= KADM5_CONFIG_REALM;
 
     kadmin = PyKAdminObject_create();
     db_args = pykadmin_parse_db_args(py_db_args);
@@ -452,7 +450,7 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
                 &params, 
                 struct_version, 
                 api_version, 
-                db_args, 
+                db_args,
                 &kadmin->server_handle);
 
     if (retval != KADM5_OK) { 
@@ -462,13 +460,8 @@ static PyKAdminObject *_kadmin_init_with_password(PyObject *self, PyObject *args
 
         PyKAdminError_raise_error(retval, "kadm5_init_with_password");
     }
-
-    // if (params)
-    //     free(params);
-
     pykadmin_free_db_args(db_args);
 
     return kadmin;
-
 }
 
